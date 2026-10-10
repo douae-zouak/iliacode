@@ -1,3 +1,9 @@
 .venv/
 __pycache__/
 *.pyc
+
+seance1/__pycache__/
+seance1/*.pyc
+
+seance2/__pycache__/
+seance2/*.pyc
