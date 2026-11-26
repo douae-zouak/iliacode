@@ -23,4 +23,27 @@ def canonicaliser(texte):
 
 
 def demander(texte, type_demande, modele="moteur", n_max=400):
-    raise NotImplementedError("demander est à écrire à l'étape 1.3")
+    # raise NotImplementedError("demander est à écrire à l'étape 1.3")
+    # Dictionnaire contient en fonction de type de la demande le reglage de la tempirature et top p
+    reglage = lire_reglages()[type_demande]
+    corps = {
+            "model": modele,
+            "messages": [{"role": "user", "content": canonicaliser(texte)}],
+            "max_tokens": n_max,
+            "temperature": reglage["temperature"],
+            "top_p": reglage["p_noyau"],
+            "seed": 0,
+            # le dernier token pour indiquer que le moteur veut finir pas juste avec . 
+            # <lim_end/>
+            "stop_token_ids": [FIN]
+            }
+    requete = urllib.request.Request(
+        ADRESSE + "/v1/chat/completions", data=json.dumps(corps).encode("utf-8"),
+        headers={"Content-Type": "application/json",
+            "Authorization": "Bearer " + os.environ["CLE_ILIACODE"]})
+
+    # timeout=300 : pour attendre la requete de s'envoyer
+    with urllib.request.urlopen(requete, timeout=300) as reponse:
+        choix = json.loads(reponse.read())["choices"][0]
+
+    return choix["message"]["content"], choix["finish_reason"] == "stop"
